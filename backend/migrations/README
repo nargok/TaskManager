@@ -1,0 +1,6 @@
+Generic single-database configuration.
+
+Generate migration script along with current model structure
+```
+alembic revision --autogenerate -m "migration_name"
+```
