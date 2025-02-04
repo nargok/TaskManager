@@ -133,7 +133,12 @@ export const MyGridList = ({ initialItems, title }: GridListProps) => {
         selectionMode="multiple"
         items={list.items}
         dragAndDropHooks={dragAndDropHooks}
-        className="space-y-2"
+        className="space-y-2 min-h-[100px] border-2 border-dashed border-gray-200 rounded p-2"
+        renderEmptyState={() => (
+          <div className="h-full w-full flex items-center justify-center text-gray-400">
+            ドロップしてアイテムを追加
+          </div>
+        )}
       >
         {(item) => (
           <GridListItem textValue={item.name} className="bg-white rounded shadow p-3 flex items-center gap-2">
