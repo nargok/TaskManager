@@ -6,12 +6,11 @@ import { useListData } from 'react-stately'
 import './App.css'
 
 function App() {
-
   return (
-    <>
-      <h1>Kanban-sample</h1>
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h1 className="text-2xl font-bold mb-8 text-gray-800">Kanban-sample</h1>
       <MultiGridList />
-    </>
+    </div>
   )
 }
 
@@ -25,11 +24,10 @@ type GridListProps = {
   title: string;
 };
 
-// 列移動
 export const MultiGridList = () => {
   return (
-    <div className="multi-grid-list">
-      <div>
+    <div className="flex gap-6">
+      <div className="w-80 bg-gray-50 rounded-lg shadow-sm p-4">
         <MyGridList
           title="Todo"
           initialItems={[
@@ -48,7 +46,7 @@ export const MultiGridList = () => {
           ]}
         />
       </div>
-      <div>
+      <div className="w-80 bg-gray-50 rounded-lg shadow-sm p-4">
         <MyGridList
           title="In Progress"
           initialItems={[
@@ -59,7 +57,7 @@ export const MultiGridList = () => {
           ]}
         />
       </div>
-      <div>
+      <div className="w-80 bg-gray-50 rounded-lg shadow-sm p-4">
         <MyGridList title="Done" initialItems={[]} />
       </div>
     </div>
@@ -81,12 +79,9 @@ export const MyGridList = ({ initialItems, title }: GridListProps) => {
         }
       });
     },
-    // カスタム要素がドロップされるのを許可する
     acceptedDragTypes: ["custom-app-type"],
-    // アイテムがコピーされるのではなく、常に移動されるようにする
     getDropOperation: () => "move",
 
-    // 項目が他のリストからドロップされたときの処理
     async onInsert(e) {
       const processedItems = await Promise.all(
         e.items
@@ -102,7 +97,6 @@ export const MyGridList = ({ initialItems, title }: GridListProps) => {
       }
     },
 
-    // グリッドの項目が空のリストにドロップされたときの処理
     async onRootDrop(e) {
       const processedItems = await Promise.all(
         e.items
@@ -114,7 +108,6 @@ export const MyGridList = ({ initialItems, title }: GridListProps) => {
       list.append(...processedItems);
     },
 
-    // 同じリスト内での項目移動
     onReorder(e) {
       if (e.target.dropPosition === "before") {
         list.moveBefore(e.target.key, e.keys)
@@ -123,7 +116,6 @@ export const MyGridList = ({ initialItems, title }: GridListProps) => {
       }
     },
 
-    // 他のリスト二項目がドロップされたとき、本のリストから削除する
     onDragEnd(e) {
       if (e.dropOperation === "move" && !e.isInternal) {
         list.remove(...e.keys)
@@ -135,20 +127,20 @@ export const MyGridList = ({ initialItems, title }: GridListProps) => {
 
   return (
     <div>
-      <h2 id={titleId}>{title}</h2>
+      <h2 id={titleId} className="text-lg font-semibold mb-4 text-gray-700">{title}</h2>
       <GridList
-        aria-aria-labelledby={titleId}
+        aria-labelledby={titleId}
         selectionMode="multiple"
         items={list.items}
         dragAndDropHooks={dragAndDropHooks}
-        className="grid-list"
+        className="space-y-2"
       >
         {(item) => (
-          <GridListItem textValue={item.name} >
-            <Button slot="drag" className="drag">
+          <GridListItem textValue={item.name} className="bg-white rounded shadow p-3 flex items-center gap-2">
+            <Button slot="drag" className="text-gray-400 hover:text-gray-600 cursor-move">
               ☰
             </Button>
-            {item.name}
+            <span className="text-gray-700">{item.name}</span>
           </GridListItem>
         )}
       </GridList>
