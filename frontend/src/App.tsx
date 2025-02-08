@@ -65,9 +65,22 @@ export const MultiGridList = () => {
 };
 
 export const MyGridList = ({ initialItems, title }: GridListProps) => {
+  const [newTaskName, setNewTaskName] = useState("");
   const list = useListData({
     initialItems,
   });
+
+  const handleAddTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newTaskName.trim()) {
+      const newTask = {
+        id: Date.now(),
+        name: newTaskName.trim()
+      };
+      list.append(newTask);
+      setNewTaskName("");
+    }
+  };
 
   const { dragAndDropHooks } = useDragAndDrop({
     getItems(keys) {
@@ -128,6 +141,21 @@ export const MyGridList = ({ initialItems, title }: GridListProps) => {
   return (
     <div>
       <h2 id={titleId} className="text-lg font-semibold mb-4 text-gray-700">{title}</h2>
+      <form onSubmit={handleAddTask} className="mb-4 flex gap-2">
+        <input
+          type="text"
+          value={newTaskName}
+          onChange={(e) => setNewTaskName(e.target.value)}
+          placeholder="新しいタスクを入力"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          追加
+        </button>
+      </form>
       <GridList
         aria-labelledby={titleId}
         selectionMode="multiple"
