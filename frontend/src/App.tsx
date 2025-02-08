@@ -1,34 +1,224 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState, useRef, useId } from 'react'
+import { useDrag, useDrop } from 'react-aria'
+import { GridList, GridListItem, Button, useDragAndDrop, isTextDropItem } from 'react-aria-components'
+import { useListData } from 'react-stately'
+
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h1 className="text-2xl font-bold mb-8 text-gray-800">Kanban-sample</h1>
+      <MultiGridList />
+    </div>
+  )
+}
+
+type Item = {
+  id: number;
+  name: string;
+};
+
+type GridListProps = {
+  initialItems: Item[];
+  title: string;
+};
+
+export const MultiGridList = () => {
+  return (
+    <div className="flex gap-6">
+      <div className="w-80 bg-gray-50 rounded-lg shadow-sm p-4">
+        <MyGridList
+          title="Todo"
+          initialItems={[
+            {
+              id: 1,
+              name: "buy milk",
+            },
+            {
+              id: 2,
+              name: "learn react",
+            },
+            {
+              id: 3,
+              name: "learn react-dnd",
+            },
+          ]}
+        />
+      </div>
+      <div className="w-80 bg-gray-50 rounded-lg shadow-sm p-4">
+        <MyGridList
+          title="In Progress"
+          initialItems={[
+            {
+              id: 4,
+              name: "learn opentelemetry",
+            },
+          ]}
+        />
+      </div>
+      <div className="w-80 bg-gray-50 rounded-lg shadow-sm p-4">
+        <MyGridList title="Done" initialItems={[]} />
+      </div>
+    </div>
+  );
+};
+
+export const MyGridList = ({ initialItems, title }: GridListProps) => {
+  const [newTaskName, setNewTaskName] = useState("");
+  const list = useListData({
+    initialItems,
+  });
+
+  const handleAddTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newTaskName.trim()) {
+      const newTask = {
+        id: Date.now(),
+        name: newTaskName.trim()
+      };
+      list.append(newTask);
+      setNewTaskName("");
+    }
+  };
+
+  const { dragAndDropHooks } = useDragAndDrop({
+    getItems(keys) {
+      return [...keys].map((key) => {
+        const item = list.getItem(key);
+        return {
+          "custom-app-type": JSON.stringify(item),
+          "text/plain": item.name,
+        }
+      });
+    },
+    acceptedDragTypes: ["custom-app-type"],
+    getDropOperation: () => "move",
+
+    async onInsert(e) {
+      const processedItems = await Promise.all(
+        e.items
+          .filter(isTextDropItem)
+          .map(async (item) =>
+            JSON.parse(await item.getText("custom-app-type"))
+          )
+      );
+      if (e.target.dropPosition === "before") {
+        list.insertBefore(e.target.key, ...processedItems);
+      } else if (e.target.dropPosition === "after") {
+        list.insertAfter(e.target.key, ...processedItems);
+      }
+    },
+
+    async onRootDrop(e) {
+      const processedItems = await Promise.all(
+        e.items
+        .filter(isTextDropItem)
+        .map(async (item) =>
+          JSON.parse(await item.getText("custom-app-type"))
+        )
+      );
+      list.append(...processedItems);
+    },
+
+    onReorder(e) {
+      if (e.target.dropPosition === "before") {
+        list.moveBefore(e.target.key, e.keys)
+      } else if (e.target.dropPosition === "after") {
+        list.moveAfter(e.target.key, e.keys)
+      }
+    },
+
+    onDragEnd(e) {
+      if (e.dropOperation === "move" && !e.isInternal) {
+        list.remove(...e.keys)
+      }
+    }
+  })
+
+  const titleId = useId();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div>
+      <h2 id={titleId} className="text-lg font-semibold mb-4 text-gray-700">{title}</h2>
+      <form onSubmit={handleAddTask} className="mb-4 flex gap-2">
+        <input
+          type="text"
+          value={newTaskName}
+          onChange={(e) => setNewTaskName(e.target.value)}
+          placeholder="新しいタスクを入力"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          追加
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+      </form>
+      <GridList
+        aria-labelledby={titleId}
+        selectionMode="multiple"
+        items={list.items}
+        dragAndDropHooks={dragAndDropHooks}
+        className="space-y-2 min-h-[100px] border-2 border-dashed border-gray-200 rounded p-2"
+        renderEmptyState={() => (
+          <div className="h-full w-full flex items-center justify-center text-gray-400">
+            ドロップしてアイテムを追加
+          </div>
+        )}
+      >
+        {(item) => (
+          <GridListItem textValue={item.name} className="bg-white rounded shadow p-3 flex items-center gap-2">
+            <Button slot="drag" className="text-gray-400 hover:text-gray-600 cursor-move">
+              ☰
+            </Button>
+            <span className="text-gray-700">{item.name}</span>
+          </GridListItem>
+        )}
+      </GridList>
+    </div>
+  );
+};
+
+export const Draggable = () => {
+  const { isDragging, dragProps} = useDrag({
+    getItems: () => [{"text/plain": "Hello, world!"}]
+  })
+
+  return (
+    <button {...dragProps} type="button">
+      {isDragging ? "Dragging" : "Drag me"}
+    </button>
+  )
+}
+
+export const DropTarget = () => {
+  const [dropped, setDropped] = useState<string | null>(null)
+  const ref = useRef<HTMLButtonElement | null>(null)
+  const { dropProps, isDropTarget } = useDrop({
+    ref,
+    async onDrop(e) {
+      const items = await Promise.all(
+        e.items
+        .filter((item) => item.kind === "text")
+        .map((item) => item.getText("text/plain"))
+      )
+      setDropped(items.join("\n"))
+    }
+  })
+
+  return (
+    <button
+      {...dropProps}
+      type="button"
+      ref={ref}
+      className={`drop-zone ${
+        isDropTarget ? "target" : dropped ? "dropped" : ""
+      }`}
+    >
+      {dropped || "Drop here"}
+    </button>
   )
 }
 
