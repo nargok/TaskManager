@@ -7,9 +7,11 @@ import './App.css'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-2xl font-bold mb-8 text-gray-800">Kanban-sample</h1>
-      <MultiGridList />
+    <div className="min-h-screen bg-white p-2">
+      <h1 className="text-xl md:text-2xl font-bold mb-4 text-gray-800 text-center">週間タスク管理</h1>
+      <div className="max-w-[96vw] mx-auto">
+        <MultiGridList />
+      </div>
     </div>
   )
 }
@@ -26,10 +28,10 @@ type GridListProps = {
 
 export const MultiGridList = () => {
   return (
-    <div className="flex gap-6">
-      <div className="w-80 bg-gray-50 rounded-lg shadow-sm p-4">
+    <div className="flex gap-1.5 justify-between">
+      <div className="w-[12vw] border border-gray-300 rounded shadow-sm p-1.5 transition-shadow hover:shadow">
         <MyGridList
-          title="Todo"
+          title="Mon"
           initialItems={[
             {
               id: 1,
@@ -46,9 +48,9 @@ export const MultiGridList = () => {
           ]}
         />
       </div>
-      <div className="w-80 bg-gray-50 rounded-lg shadow-sm p-4">
+      <div className="w-[12vw] border border-gray-300 rounded shadow-sm p-1.5 transition-shadow hover:shadow">
         <MyGridList
-          title="In Progress"
+          title="Tue"
           initialItems={[
             {
               id: 4,
@@ -57,8 +59,20 @@ export const MultiGridList = () => {
           ]}
         />
       </div>
-      <div className="w-80 bg-gray-50 rounded-lg shadow-sm p-4">
-        <MyGridList title="Done" initialItems={[]} />
+      <div className="w-[12vw] border border-gray-300 rounded shadow-sm p-1.5 transition-shadow hover:shadow">
+        <MyGridList title="Wed" initialItems={[]} />
+      </div>
+      <div className="w-[12vw] border border-gray-300 rounded shadow-sm p-1.5 transition-shadow hover:shadow">
+        <MyGridList title="Thu" initialItems={[]} />
+      </div>
+      <div className="w-[12vw] border border-gray-300 rounded shadow-sm p-1.5 transition-shadow hover:shadow">
+        <MyGridList title="Fri" initialItems={[]} />
+      </div>
+      <div className="w-[12vw] border border-gray-300 rounded shadow-sm p-1.5 transition-shadow hover:shadow">
+        <MyGridList title="Sat" initialItems={[]} />
+      </div>
+      <div className="w-[12vw] border border-gray-300 rounded shadow-sm p-1.5 transition-shadow hover:shadow">
+        <MyGridList title="Sun" initialItems={[]} />
       </div>
     </div>
   );
@@ -86,6 +100,9 @@ export const MyGridList = ({ initialItems, title }: GridListProps) => {
     getItems(keys) {
       return [...keys].map((key) => {
         const item = list.getItem(key);
+        if (!item) {
+          throw new Error(`Item with key ${key} not found`);
+        }
         return {
           "custom-app-type": JSON.stringify(item),
           "text/plain": item.name,
@@ -140,40 +157,40 @@ export const MyGridList = ({ initialItems, title }: GridListProps) => {
 
   return (
     <div>
-      <h2 id={titleId} className="text-lg font-semibold mb-4 text-gray-700">{title}</h2>
-      <form onSubmit={handleAddTask} className="mb-4 flex gap-2">
+      <h2 id={titleId} className="text-sm font-semibold mb-1.5 text-gray-700 border-b border-gray-100 pb-1">{title}</h2>
+      <form onSubmit={handleAddTask} className="mb-1.5 flex gap-1">
         <input
           type="text"
           value={newTaskName}
           onChange={(e) => setNewTaskName(e.target.value)}
-          placeholder="新しいタスクを入力"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="新しいタスク"
+          className="flex-1 px-1.5 py-0.5 text-xs border border-gray-200 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
         />
-        <button
+        {/* <button
           type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1"
         >
           追加
-        </button>
+        </button> */}
       </form>
       <GridList
         aria-labelledby={titleId}
         selectionMode="multiple"
         items={list.items}
         dragAndDropHooks={dragAndDropHooks}
-        className="space-y-2 min-h-[100px] border-2 border-dashed border-gray-200 rounded p-2"
+        className="space-y-1 min-h-[120px] border border-dashed border-gray-100 rounded p-1 bg-gray-50/30 text-xs"
         renderEmptyState={() => (
-          <div className="h-full w-full flex items-center justify-center text-gray-400">
-            ドロップしてアイテムを追加
+          <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs">
+            タスクを追加
           </div>
         )}
       >
         {(item) => (
-          <GridListItem textValue={item.name} className="bg-white rounded shadow p-3 flex items-center gap-2">
-            <Button slot="drag" className="text-gray-400 hover:text-gray-600 cursor-move">
+          <GridListItem textValue={item.name} className="bg-white rounded border border-gray-200 p-1.5 flex items-center gap-1 hover:shadow-sm transition-shadow">
+            <Button slot="drag" className="text-gray-400 hover:text-gray-600 cursor-move text-xs">
               ☰
             </Button>
-            <span className="text-gray-700">{item.name}</span>
+            <span className="text-gray-700 text-xs truncate">{item.name}</span>
           </GridListItem>
         )}
       </GridList>
